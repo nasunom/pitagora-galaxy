@@ -50,13 +50,13 @@ ENV GALAXY_NEW_FILE_PATH /opt/workdir/database/tmp
 ENV GALAXY_JOB_WORKING_DIRECTORY /opt/workdir/database/job_working_directory
 WORKDIR /home/galaxy
 
-RUN git clone https://github.com/pitagora-galaxy/install-0.2.3.git
+RUN git clone https://github.com/pitagora-galaxy/install-0.2.4.git
 RUN git clone https://github.com/galaxyproject/galaxy
 RUN cd galaxy ; git checkout -b master origin/master
 
 RUN sed 's/^#host = 127.0.0.1/host = 0.0.0.0/' galaxy/config/galaxy.ini.sample \
   > galaxy/config/galaxy.ini
-#RUN sed -i 's/^#port = 8080/port = 80/' galaxy/config/galaxy.ini
+RUN sed -i 's/^#port = 8080/port = 80/' galaxy/config/galaxy.ini
 RUN sed -i 's$^#database_connection = sqlite:///./database/universe.sqlite?isolation_level=IMMEDIATE$database_connection = mysql://galaxy:galaxy@localhost:3306/galaxy?unix_socket=/var/run/mysqld/mysqld.sock$' \
   galaxy/config/galaxy.ini
 RUN sed -i 's/^#database_engine_option_pool_recycle = -1/database_engine_option_pool_recycle = 7200/' \
@@ -72,6 +72,9 @@ RUN sed -i 's$^#tool_dependency_dir = None$tool_dependency_dir = ../tool_depende
 RUN sed -i 's/^#allow_user_dataset_purge = False/allow_user_dataset_purge = True/' \
   galaxy/config/galaxy.ini
 
+ADD config/tool_sheds_conf.xml galaxy/config/tool_sheds_conf.xml
+RUN cp install-0.2.4/config/tool_data_table_conf.xml galaxy/config/
+#RUN cp install-0.2.4/tool-data/*.loc galaxy/tool-data/
 RUN mkdir -p tool_dependency && chown galaxy.galaxy tool_dependency
 RUN cp galaxy/config/tool_conf.xml.sample galaxy/config/tool_conf.xml
 RUN chown -R galaxy.galaxy /home/galaxy
